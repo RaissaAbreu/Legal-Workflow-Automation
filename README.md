@@ -13,6 +13,23 @@ definir prazos e acompanhar o andamento. O **LEGAL FLOW** automatiza esse caminh
 
 > Projeto de portfólio/demonstração. Use apenas dados fictícios ou anonimizados.
 
+## Telas
+
+![Visão geral: indicadores de prazos, demandas por área e por prioridade](docs/capturas/01_visao_geral.png)
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/capturas/02_nova_demanda.png" alt="Nova demanda: formulário com solicitante, descrição, prazo e documentos"><br><sub><b>Nova demanda</b> — formulário ou e-mail (.eml) com anexos.</sub></td>
+    <td width="50%"><img src="docs/capturas/03_triagem.png" alt="Detalhe da demanda com prioridade em destaque e formulário de triagem"><br><sub><b>Demandas e triagem</b> — extração, classificação sugerida e correção pelo analista.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/capturas/04_prazos_alertas.png" alt="Prazos e alertas: vencidos, vencendo e sem prazo"><br><sub><b>Prazos e alertas</b> — pendências monitoradas pelo n8n de hora em hora.</sub></td>
+    <td width="50%"><img src="docs/capturas/05_como_funciona.png" alt="Como funciona: etapas da automação e regras"><br><sub><b>Como funciona</b> — etapas do fluxo e regras de classificação e prioridade.</sub></td>
+  </tr>
+</table>
+
+<sub>Capturas geradas com os dados fictícios de <code>python -m legalflow.seed</code>.</sub>
+
 ## Arquitetura
 
 ```mermaid

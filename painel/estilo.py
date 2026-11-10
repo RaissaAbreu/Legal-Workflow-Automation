@@ -117,7 +117,7 @@ div[class*="st-key-cartao"] {
 .lf-arquivos .n { width: 24px; height: 24px; border-radius: 50%; background: #e7ecf6; color: #2a3f6e; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
 .lf-arquivos .n.x { background: #f9e0dc; color: #9b2c1f; }
 .lf-arquivos .det { color: var(--lf-suave); font-size: 13.5px; margin-top: 2px; }
-.lf-arquivos .dir { margin-left: auto; }
+.lf-arquivos .dir { margin-left: auto; white-space: nowrap; }
 
 /* ---------- barras ---------- */
 .lf-barras { display: grid; gap: 12px; }
