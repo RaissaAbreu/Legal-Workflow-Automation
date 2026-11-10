@@ -1,0 +1,259 @@
+{
+  "id": "LegalFlowEntrada01",
+  "name": "LEGAL FLOW — Entrada de demandas",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nova-demanda",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook nova demanda",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "id": "b866d4f7-c17e-5a10-952f-17dcd5c2692d",
+      "webhookId": "legalflow-nova-demanda"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/demandas",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "name": "Registrar demanda (API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        300
+      ],
+      "id": "e2d59208-44c3-5824-931e-a07459ec005c",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "canal-teams",
+              "leftValue": "={{ $json.notificacao.webhook_url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Tem canal do Teams?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        500,
+        200
+      ],
+      "id": "1fd443e6-ae68-54c3-824e-8809677f947c"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.notificacao.webhook_url }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.notificacao.payload) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "name": "Notificar responsável no Teams",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        760,
+        100
+      ],
+      "id": "4d97fb91-6603-5c89-8e94-b4d3229f3072",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/notificacoes",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ demanda_id: $('Registrar demanda (API)').item.json.demanda.id, tipo: 'nova_demanda', situacao: ($json.error ? 'falha' : 'enviada'), destino: 'Microsoft Teams' }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "name": "Registrar envio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1000,
+        100
+      ],
+      "id": "fbec9c77-6480-555f-a5cb-c4996dcbfc70"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/notificacoes",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ demanda_id: $('Registrar demanda (API)').item.json.demanda.id, tipo: 'nova_demanda', situacao: 'sem_canal', destino: 'Microsoft Teams' }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "name": "Registrar sem canal",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        760,
+        320
+      ],
+      "id": "ac4ee545-3a99-56b3-8e09-e3add7e84286"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($('Registrar demanda (API)').item.json) }}",
+        "options": {
+          "responseCode": 201
+        }
+      },
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1240,
+        200
+      ],
+      "id": "dfe519bb-51fe-5f99-b6e6-5d6e7e8a540c"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ erro: 'Não foi possível registrar a demanda', detalhe: $json.error }) }}",
+        "options": {
+          "responseCode": 422
+        }
+      },
+      "name": "Responder erro",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        500,
+        460
+      ],
+      "id": "0bfd2d83-66b9-56b1-a614-50484ee8589d"
+    }
+  ],
+  "connections": {
+    "Webhook nova demanda": {
+      "main": [
+        [
+          {
+            "node": "Registrar demanda (API)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar demanda (API)": {
+      "main": [
+        [
+          {
+            "node": "Tem canal do Teams?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem canal do Teams?": {
+      "main": [
+        [
+          {
+            "node": "Notificar responsável no Teams",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar sem canal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notificar responsável no Teams": {
+      "main": [
+        [
+          {
+            "node": "Registrar envio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar envio": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar sem canal": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

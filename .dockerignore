@@ -1,0 +1,7 @@
+.git
+dados
+**/__pycache__
+.pytest_cache
+.env
+n8n
+tests

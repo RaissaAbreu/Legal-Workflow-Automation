@@ -1,0 +1,242 @@
+{
+  "id": "LegalFlowMonitor01",
+  "name": "LEGAL FLOW — Monitor de prazos",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "name": "A cada hora",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        200
+      ],
+      "id": "4293b105-64fb-5279-9956-3b910b7e45f5"
+    },
+    {
+      "parameters": {},
+      "name": "Executar agora (teste)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        400
+      ],
+      "id": "e1ab74cc-9bdf-53da-b871-2f84ae1044fe"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://api:8000/alertas/pendentes",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "name": "Buscar alertas pendentes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        300
+      ],
+      "id": "f192b497-74d4-5701-b824-4a69c99245a0"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "alertas",
+        "options": {}
+      },
+      "name": "Separar alertas",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ],
+      "id": "8d85f642-369c-5efd-950b-f62eb7ba99a2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "canal-teams",
+              "leftValue": "={{ $json.webhook_url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Tem canal do Teams?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        720,
+        300
+      ],
+      "id": "1fd443e6-ae68-54c3-824e-8809677f947c"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.webhook_url }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "name": "Enviar alerta ao Teams",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        200
+      ],
+      "id": "62f24a46-b8a3-52fc-8721-429896dfd113",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/notificacoes",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ demanda_id: $('Separar alertas').item.json.demanda_id, tipo: $('Separar alertas').item.json.tipo, situacao: ($json.error ? 'falha' : 'enviada'), destino: 'Microsoft Teams' }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "name": "Registrar envio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        200
+      ],
+      "id": "fbec9c77-6480-555f-a5cb-c4996dcbfc70"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/notificacoes",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ demanda_id: $json.demanda_id, tipo: $json.tipo, situacao: 'sem_canal', destino: 'Microsoft Teams' }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "name": "Registrar sem canal",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        420
+      ],
+      "id": "ac4ee545-3a99-56b3-8e09-e3add7e84286"
+    }
+  ],
+  "connections": {
+    "A cada hora": {
+      "main": [
+        [
+          {
+            "node": "Buscar alertas pendentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executar agora (teste)": {
+      "main": [
+        [
+          {
+            "node": "Buscar alertas pendentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar alertas pendentes": {
+      "main": [
+        [
+          {
+            "node": "Separar alertas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separar alertas": {
+      "main": [
+        [
+          {
+            "node": "Tem canal do Teams?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem canal do Teams?": {
+      "main": [
+        [
+          {
+            "node": "Enviar alerta ao Teams",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar sem canal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar alerta ao Teams": {
+      "main": [
+        [
+          {
+            "node": "Registrar envio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

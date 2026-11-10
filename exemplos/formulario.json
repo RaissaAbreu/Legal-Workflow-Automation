@@ -1,0 +1,14 @@
+{
+  "canal": "Formulário",
+  "solicitante": "Henrique Saldanha",
+  "email_solicitante": "henrique.saldanha@exemplo.com.br",
+  "departamento": "Operações",
+  "assunto": "Auto de infração da ANATEL sobre qualidade do serviço",
+  "descricao": "Recebemos auto de infração da ANATEL por descumprimento de metas de qualidade. Prazo para apresentar defesa até 25/11/2026.",
+  "documentos": [
+    {
+      "nome": "resumo_auto_infracao.txt",
+      "conteudo_base64": "UmVzdW1vIGZpY3TDrWNpbzogYXV0byBkZSBpbmZyYcOnw6NvIG7CuiAwMDEvMjAyNi4="
+    }
+  ]
+}
